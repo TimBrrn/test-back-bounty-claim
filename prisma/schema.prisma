@@ -54,6 +54,13 @@ model Bounty {
     @@map(name: "bounties")
 }
 
+model BountyClaim {
+  id String @id @default(uuid()) @map(name: "id")
+  claimedAt DateTime @default(now())
+  fkUserId  String
+  fkBountyId String
+}
+
 model Nft {
     // DEFAULT COLUMNS
     id                    String    @id @map(name: "id")

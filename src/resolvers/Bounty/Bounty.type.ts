@@ -32,3 +32,20 @@ export class Bounty implements PrismaBounty {
 
     fkTrackId: string;
 }
+
+
+// new type to track which user claimed the bounty
+@ObjectType()
+export class BountyClaim {
+    @Field(() => ID)
+    id: string;
+
+    @Field(() => Date)
+    claimedAt: Date;
+
+    @Field(() => String)
+    fkUserId: string;
+
+    @Field(() => String)
+    fkBountyId: string;
+}
