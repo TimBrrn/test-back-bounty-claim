@@ -21,10 +21,16 @@ export class Bounty implements PrismaBounty {
         return null;
     }
 
+    @Field(() => [String], {nullable: true})
+    claimedByIp: string[];
+
     claimCode: string;
 
     @Field(() => String, { nullable: true })
     maxClaim: number | null;
+
+    @Field(() => String, { nullable: true})
+    bountyClaim: number | null;
 
     isActive: boolean;
 

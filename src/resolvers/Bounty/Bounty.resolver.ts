@@ -36,7 +36,20 @@ export class BountyResolver {
             throw new Error('User not found')
         }
 
+        // check last claim 
+        const now = new Date();
+        if(user.bountyClaimTimestamp && user.bountyClaimTimestamp.length > 0){
+            const lastClaimDate = new Date(user.bountyClaimTimestamp[user.bountyClaimTimestamp.length - 1]);
+            const timeSinceLastClaim = now.getTime() - lastClaimDate.getTime()
+
+        // check if timeSinceLastClaim < 24 hours
+        if (timeSinceLastClaim < 24 * 60 * 60 * 1000) {
+            throw new Error ('bounty already claimed during the last 24 hours')
+        }};
+
         
+            
+
 
         // check if the bounty is active & claim code is true - (1) (3)
         const bounty = await prisma.bounty.findUnique({
@@ -48,6 +61,36 @@ export class BountyResolver {
         if (!bounty) {
             throw new Error("Invalid claim code or inactive/public bounty");
         }
+
+        // check if bountyMax reach or not
+        if (bounty.bountyClaim === bounty.maxClaim) {
+            throw new Error("Maximum claims for this bounty reached");
+        }
+
+
+        // check if user ip has already claimed the bounty
+        const userIp = user.ip
+        let hasClaimed = false
+
+        if(userIp){
+          hasClaimed = bounty.claimedByIp.includes(userIp)
+        }
+
+        // if IP addresse has already claimed, throw error
+        if (hasClaimed){
+            throw new Error ("bounty already claimed by this ip addresse")
+        }
+
+        // if not, add the IP addresse into the arr and update
+        if (userIp){
+        await prisma.bounty.update({
+            where:{id : bounty.id},
+            data:{
+                claimedByIp:{
+                    push:userIp
+                }
+            }
+        })}
 
 
         // check if the user has already claimed this bounty using the bountyClaim - check (2)
@@ -68,6 +111,12 @@ export class BountyResolver {
             }
         });
      
+
+        // increase the value of bountyClaim by 1 after user is ok for claim
+        await prisma.bounty.update({
+            where:{id: bounty.id},
+            data:{bountyClaim : {increment: 1 }}
+        })
 
 
         // find nfts that can be claimed : no owner + same track as bounty - check (4)
