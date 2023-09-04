@@ -56,7 +56,7 @@ export class BountyResolver {
         })
 
         if (existingClaim) {
-            throw new Error("You have already claimed this Bounty.");
+            throw new Error("User has already claimed this Bounty.");
         }
 
         // if not, record the claim in bountyClaim table
