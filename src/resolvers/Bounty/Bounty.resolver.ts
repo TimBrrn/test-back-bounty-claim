@@ -53,7 +53,7 @@ export class BountyResolver {
 
         // check if the bounty is active & claim code is true - (1) (3)
         const bounty = await prisma.bounty.findUnique({
-            where: {isActive:true, claimCode:claimCode}   //check (1) & (2)          
+            where: {isActive:true, claimCode:claimCode}   //check (1) & (3)          
         })
 
 
@@ -81,27 +81,17 @@ export class BountyResolver {
             throw new Error ("bounty already claimed by this ip addresse")
         }
 
-        // if not, add the IP addresse into the arr and update
-        if (userIp){
-        await prisma.bounty.update({
-            where:{id : bounty.id},
-            data:{
-                claimedByIp:{
-                    push:userIp
-                }
-            }
-        })}
-
-
+        
+        
         // check if the user has already claimed this bounty using the bountyClaim - check (2)
         const existingClaim = await prisma.bountyClaim.findFirst({
             where:{fkUserId: user.id, fkBountyId: bounty.id}
         })
-
+        
         if (existingClaim) {
             throw new Error("User has already claimed this Bounty.");
         }
-
+        
         // if not, record the claim in bountyClaim table
         await prisma.bountyClaim.create({
             data: {
@@ -110,15 +100,15 @@ export class BountyResolver {
                 fkBountyId: bounty.id
             }
         });
-     
-
+        
+        
         // increase the value of bountyClaim by 1 after user is ok for claim
         await prisma.bounty.update({
             where:{id: bounty.id},
             data:{bountyClaim : {increment: 1 }}
         })
-
-
+        
+        
         // find nfts that can be claimed : no owner + same track as bounty - check (4)
         const availableNfts = await prisma.nft.findMany({
             where: {
@@ -128,20 +118,30 @@ export class BountyResolver {
                 ],
             },
         });
-
+        
         // throw error if no nft available
         if (availableNfts.length === 0) {
             throw new Error("No available NFTs for claiming");
         }
-
+        
         // check if bounty is random 
         // -> if true, return a random nft 
         // -> if not, return nft starting from number 1 (index[0]) - check (6)
         const claimedNft = bounty.isRandom
-            ? availableNfts[Math.floor(Math.random() * availableNfts.length)]
-            : availableNfts[0];
-
-
+        ? availableNfts[Math.floor(Math.random() * availableNfts.length)]
+        : availableNfts[0];
+        
+        // add the IP addresse into the arr and update
+        if (userIp){
+        await prisma.bounty.update({
+            where:{id : bounty.id},
+            data:{
+                claimedByIp:{
+                    push:userIp
+                }
+            }
+        })}
+        
         // update nft ownership - check (5)
         await prisma.nft.update({
             where: { id: claimedNft.id }, // find nft id
