@@ -131,7 +131,7 @@ export class BountyResolver {
         ? availableNfts[Math.floor(Math.random() * availableNfts.length)]
         : availableNfts[0];
         
-        // add the IP addresse into the arr and update
+        // add the IP addresse into the arr and update ----------------- CHANGE HERE ----------------------
         if (userIp){
         await prisma.bounty.update({
             where:{id : bounty.id},
