@@ -15,34 +15,30 @@ export class NftResolver {
             @Arg("newOwnerId") newOwnerId: string
         ) {
 
-            //check user id
+            
+            // Vérification de l'existance de l'utilisateur
             if (!user?.id) {
                 throw new Error("user not found");
             }
     
-            // check nft id & ownership
-            const nft = await prisma.nft.findUnique({
-                where: {id:nftId, fkOwnerId: user.id}                    
-                });
-    
-            if (!nft) {
-                throw new Error("nft not found");
+
+            // Vérification de l'existance du NFT et si le NFT est bien en possession de l'utilisateur
+            const nft = await prisma.nft.findUnique({where: {id: nftId}})
+            if (!nft || nft.fkOwnerId !== user.id ) {
+                throw new Error("nft not found or not owned by the user");
             }
             
-            // check new owner
-            const nextOwner = await prisma.user.findUnique({
-                where: { id: newOwnerId },
-            });
-    
+
+            // Vérification de l'existance de l'utilisateur destinataire
+            const nextOwner = await prisma.user.findUnique({where: {id: newOwnerId}});
             if (!nextOwner) {
                 throw new Error("new owner not found");
             }
     
-            // update nft's owner 
-            const updatedNft = await prisma.nft.update({
-                where: { id: nft.id },
-                data: { fkOwnerId: newOwnerId },
-            });
+
+            // Mise à jour du propriétaire du NFT
+            const updatedNft = await prisma.nft.update({where: {id: nft.id}, data: {fkOwnerId: newOwnerId}});
+
     
             return updatedNft;
         }
