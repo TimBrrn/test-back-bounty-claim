@@ -31,8 +31,6 @@ export class User implements PrismaUser {
     @Field(() => String, { nullable: true })
     avatarUrl: string | null;
 
-    ip: string;
-
     email: string;
 
     passwordHash: string | null;
@@ -40,9 +38,6 @@ export class User implements PrismaUser {
     isAdmin: boolean | null;
 
     isEmailVerified: boolean;
-
-    @Field(() => [Date], {nullable: true})
-    bountyClaimTimestamp: Date[];
 
     @Field(() => Artist, { name: "artist", nullable: true })
     async artist(): Promise<PrismaArtist | null> {

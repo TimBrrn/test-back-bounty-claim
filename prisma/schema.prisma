@@ -48,10 +48,7 @@ model Bounty {
     isRandom        Boolean       @map(name: "is_random")
     maxClaim        Int?          @map(name: "max_claim")
 
-    bountyClaim     Int?          @default(0) @map(name: "bounty_claim")
-
-    claimedByIp     String[]      @default([]) @map(name:"claimed_by_ip")
-
+    
     track           Track         @relation(name: "Bounty_Track", fields: [fkTrackId], references: [id], onDelete: Cascade)
     fkTrackId       String        @unique @map(name: "fk_track_id")
 
@@ -60,9 +57,10 @@ model Bounty {
 
 model BountyClaim {
   id                String        @id @default(uuid()) @map(name: "id")
-  claimedAt         DateTime      @default(now())
-  fkUserId          String        @map(name: "fk_user_id")
+  timestamp         DateTime      @default(now())
+  fkUserId          String        @map(name: "fk_user_id") @unique
   fkBountyId        String        @map(name: "fk_bounty_id")
+  
 }
 
 model Nft {
@@ -118,10 +116,7 @@ model User {
     isAdmin           Boolean?  @map(name: "is_admin")
     isEmailVerified   Boolean   @default(value: false) @map(name: "is_email_verified")
     avatarUrl         String?   @map(name: "avatar_url")
-
-    bountyClaimTimestamp DateTime[]
-
-    ip                String?   @map(name:"ip")
+   
     // FOREIGN KEYS / RELATIONS
     artist            Artist?       @relation(name: "User_Artist")
     nfts              Nft[]         @relation(name: "Nft_User_Owner")

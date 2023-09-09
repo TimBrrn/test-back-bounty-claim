@@ -1,4 +1,4 @@
-import { Artist, PrismaClient, Track, User } from "@prisma/client";
+import { Artist, BountyClaim, PrismaClient, Track, User } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
@@ -105,6 +105,18 @@ async function createTrack(artistId?: string): Promise<Track> {
         });
     }
 
+    // for (let i = 1; i <= 50; i++){
+    //     await prisma.bountyClaim.create({
+    //         data:{
+    //             id: faker.string.uuid(),
+    //             timestamp: faker.date.recent(),
+    //             fkUserId: user.id,
+    //             fkBountyId: bounty.id,
+
+    //         }
+    //     })
+    // }
+
     if (Math.random() > 0.6) {
         await prisma.bounty.create({
             data: {
@@ -141,3 +153,48 @@ main()
         await prisma.$disconnect();
         process.exit(1);
     });
+
+    async function createRandomBountyClaims(): Promise<void> {
+        const users = await prisma.user.findMany({
+          select: {
+            id: true
+          }
+        });
+      
+        const bounties = await prisma.bounty.findMany({
+          select: {
+            id: true
+          }
+        });
+      
+        if (!users.length || !bounties.length) {
+          console.log("No users or bounties available to create BountyClaims");
+          return;
+        }
+      
+        const bountyClaimsToCreate = [];
+      
+        for (let i = 0; i < 30; i++) {
+            const randomUser = users[Math.floor(Math.random() * users.length)];
+            const randomBounty = bounties[Math.floor(Math.random() * bounties.length)];
+      
+          bountyClaimsToCreate.push({
+            id: faker.string.uuid(),
+            timestamp: faker.date.recent(),
+            fkUserId: randomUser.id,
+            fkBountyId: randomBounty.id
+          });
+        }
+      
+        try {
+          await prisma.bountyClaim.createMany({
+            data: bountyClaimsToCreate,
+            skipDuplicates: true
+          });
+          console.log("Successfully created random BountyClaims");
+        } catch (error) {
+          console.error("Error creating BountyClaims:", error);
+        }
+      }
+      
+      createRandomBountyClaims();
