@@ -58,7 +58,7 @@ model Bounty {
 model BountyClaim {
   id                String        @id @default(uuid()) @map(name: "id")
   timestamp         DateTime      @default(now())
-  fkUserId          String        @map(name: "fk_user_id") @unique
+  fkUserId          String        @map(name: "fk_user_id")
   fkBountyId        String        @map(name: "fk_bounty_id")
   
 }

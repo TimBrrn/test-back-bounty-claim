@@ -22,10 +22,16 @@ export class NftResolver {
             }
     
 
-            // Vérification de l'existance du NFT et si le NFT est bien en possession de l'utilisateur
+            // Vérification de l'existence du NFT 
             const nft = await prisma.nft.findUnique({where: {id: nftId}})
-            if (!nft || nft.fkOwnerId !== user.id ) {
-                throw new Error("nft not found or not owned by the user");
+            if (!nft) {
+                throw new Error("nft not found");
+            }
+
+            
+            // Vérification si le NFT est en possession de l'utilisateur
+            if (nft.fkOwnerId !== user.id){
+                throw new Error("nft not owned by the user")
             }
             
 

@@ -43,7 +43,7 @@ export class BountyResolver {
 
         // Vérification de la date du dernier claim de l'utilisateur
         const now = new Date();
-        const bountyClaim = await prisma.bountyClaim.findUnique({where: {fkUserId: user.id}})
+        const bountyClaim = await prisma.bountyClaim.findFirst({where: {fkUserId: user.id}})
         if(bountyClaim){
             const timeSinceLastClaim = now.getTime() - new Date(bountyClaim.timestamp).getTime()
             if (timeSinceLastClaim < 24 * 60 * 60 * 1000) {
@@ -56,6 +56,9 @@ export class BountyResolver {
         if (!bounty) {
             throw new Error("Invalid claim code or inactive bounty");
         }
+
+
+
 
 
         // Vérification si nombre de claim max atteint
@@ -71,18 +74,35 @@ export class BountyResolver {
         }
 
 
-        // Vérification si l'adresse IP de l'utilisateur a déjà réclamer le bounty
-        const userIpAddresses = await prisma.ipAddress.findMany({where : {fkUserId: user.id}})
-       
-        for (let ip of userIpAddresses){
-            const hasClaimed = await prisma.bountyClaim.findFirst({
-                where:{ fkBountyId: bounty.id, fkUserId: user.id}
+        // Récupération de l'adresse IP de l'utilisateur
+        const userIpAddress = await prisma.ipAddress.findFirst({where : {fkUserId: user.id}})
+
+        if (!userIpAddress) {
+            throw new Error("no IP address associated with the user.");
+        }
+
+        // Récupération de tous les comptes associés à cette adresse IP
+        const usersWithSameIP = await prisma.user.findMany({
+            where:{
+                ipAddresses: {some: {address: userIpAddress.address}}}
+        })
+
+        // Vérifier si l'un des comptes a déjà réclamé le bounty 
+        for (let user of usersWithSameIP){
+            const claimed = await prisma.bountyClaim.findFirst({
+                where: {
+                    AND : [
+                        {fkBountyId: bounty.id},
+                        {fkUserId: user.id}
+                    ]
+                }
             })
 
-        if (hasClaimed){
-            throw new Error ("bounty already claimed by this IP")
+            if (claimed){
+                throw new Error ("bounty already claimed by this IP")
             }
         }
+
 
 
         // Recherche de NFTs n'ayant aucun propriétaire et associés au bounty 

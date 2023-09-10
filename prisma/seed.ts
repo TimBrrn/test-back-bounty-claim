@@ -154,31 +154,46 @@ main()
         process.exit(1);
     });
 
-    async function createRandomBountyClaims(): Promise<void> {
+
+// Fonction conçue pour créer des `BountyClaims` aléatoirement
+async function createRandomBountyClaims(): Promise<void> {
+    
+        // Récupération des utilisateurs
         const users = await prisma.user.findMany({
           select: {
             id: true
           }
         });
-      
+    
+        // Récupération des bounties
         const bounties = await prisma.bounty.findMany({
           select: {
             id: true
           }
         });
       
+        
+        // Check s'il existe bien des utilisateurs et des bounties dans la base de données.
         if (!users.length || !bounties.length) {
           console.log("No users or bounties available to create BountyClaims");
           return;
         }
       
+        // Liste pour stocker les BountyClaims 
         const bountyClaimsToCreate = [];
       
+        // Boucle pour générer 30 BountyClaims
         for (let i = 0; i < 30; i++) {
+
+            // Sélection aléatoire d'un utilisateur 
             const randomUser = users[Math.floor(Math.random() * users.length)];
+
+            // Sélection aléatoire d'un bounty 
             const randomBounty = bounties[Math.floor(Math.random() * bounties.length)];
       
-          bountyClaimsToCreate.push({
+        
+        // Ajoute un nouveau BountyClaim avec des données aléatoires à la liste.
+        bountyClaimsToCreate.push({
             id: faker.string.uuid(),
             timestamp: faker.date.recent(),
             fkUserId: randomUser.id,
@@ -186,15 +201,22 @@ main()
           });
         }
       
+        // Création des BountyClaims
         try {
-          await prisma.bountyClaim.createMany({
-            data: bountyClaimsToCreate,
+             prisma.bountyClaim.createMany({
+                data: bountyClaimsToCreate,
+            
+            // Evite la création de doublons.
             skipDuplicates: true
-          });
-          console.log("Successfully created random BountyClaims");
-        } catch (error) {
-          console.error("Error creating BountyClaims:", error);
-        }
-      }
-      
-      createRandomBountyClaims();
+        });
+
+        console.log("Successfully created random BountyClaims");
+
+    } catch (error) {
+
+        console.error("Error creating BountyClaims:", error);
+    }
+}
+
+// Appelle la fonction pour éxexuter le code ci-dessus
+createRandomBountyClaims();
